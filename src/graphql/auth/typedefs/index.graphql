@@ -1,0 +1,17 @@
+# schema.graphql
+
+type User {
+  id: ID!
+  username: String!
+  email: String!
+}
+
+type Query {
+  hello: String!
+  user(id: ID!): User
+  users: [User!]!
+}
+
+type Mutation {
+  createUser(username: String!, email: String!): User!
+}
