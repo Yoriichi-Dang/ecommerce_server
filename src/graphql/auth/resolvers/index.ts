@@ -1,20 +1,17 @@
-// src/resolvers/index.ts
-let users = [
-  { id: '1', username: 'user1', email: 'user1@example.com' },
-  { id: '2', username: 'user2', email: 'user2@example.com' }
-]
+import { Token, UserLogin, UserRegister } from '../types'
 
 export const resolvers = {
   Query: {
-    hello: () => 'Hello nguyen!',
-    user: (_: any, args: { id: string }) => users.find((user) => user.id === args.id),
-    users: () => users
+    login: (_: any, { input }: { input: UserLogin }): Token => {
+      console.log(input)
+      const token: Token = { access_token: 'dummy_token' }
+      return token // Replace with actual token generation logic
+    }
   },
   Mutation: {
-    createUser: (_: any, args: { username: string; email: string }) => {
-      const newUser = { id: String(users.length + 1), ...args }
-      users.push(newUser)
-      return newUser
+    register: (_: any, { input }: { input: UserRegister }): Token => {
+      console.log(input)
+      return { access_token: 'dummy_token' }
     }
   }
 }

@@ -1,17 +1,35 @@
-# schema.graphql
+type Token {
+  access_token: String!
+  refresh_token: String
+}
+
+input UserLogin {
+  email: String!
+  password: String!
+}
+
+input UserRegister {
+  email: String!
+  password: String!
+  phone: String!
+}
 
 type User {
   id: ID!
-  username: String!
   email: String!
+  phone: String!
+  username: String
+  full_name: String
+  address: String
+  district: String
+  province: String
+  gender: String
+  day_of_birth: String
+  avatar_url: String
 }
-
 type Query {
-  hello: String!
-  user(id: ID!): User
-  users: [User!]!
+  login(input: UserLogin): Token!
 }
-
 type Mutation {
-  createUser(username: String!, email: String!): User!
+  register(input: UserRegister): Token!
 }

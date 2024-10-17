@@ -1,7 +1,7 @@
 import { expressMiddleware } from '@apollo/server/express4'
 import express, { Application } from 'express'
 import { readFileSync } from 'fs'
-import { resolvers } from './graphql/auth/resolvers'
+import { resolvers as authResolvers } from './graphql/auth/resolvers'
 import cors from 'cors'
 import bodyParser from 'body-parser'
 import { ApolloServer } from '@apollo/server'
@@ -9,7 +9,15 @@ import path from 'path'
 
 async function startServer() {
   const app: Application = express()
-  const typeDefs = readFileSync(path.join(__dirname, 'graphql/auth/typedefs/index.graphql'), 'utf8')
+  const typeDefs = [readFileSync(path.join(__dirname, 'graphql/auth/typedefs/index.graphql'), 'utf8')].join('\n')
+  const resolvers = {
+    Query: {
+      ...authResolvers.Query
+    },
+    Mutation: {
+      ...authResolvers.Mutation
+    }
+  }
 
   const server = new ApolloServer({
     typeDefs,
