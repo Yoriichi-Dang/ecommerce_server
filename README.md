@@ -2,8 +2,8 @@
 
 ## Tech in use
 
-**Frontend:** React Native with Expo, Apollo GraphQL client <br>
-**Backend:** ExpressJS with TS,GraphQL Server, PostGreSQL, Cloudinary, FastAPI for call model AI
+**Frontend:** React Native with Expo, Axios <br>
+**Backend:** ExpressJS with TS, PostGreSQL, Cloudinary, FastAPI for call model AI
 **More:** github, docker
 
 ## How to run project
