@@ -1,9 +1,9 @@
 type UserLogin = {
-  email: string
+  email: string | undefined
+  phone: string | undefined
   password: string
 }
 type UserRegister = UserLogin & {
-  phone: string
   username: string
 }
 

@@ -18,19 +18,19 @@
  * @property {Date} modifield_at - The date and time when the user was created.
  */
 type UserModel = {
-  id: string
+  id?: string
   email: string
   password_hash: string
   phone: string
   username: string
-  full_name: string
-  address: string
-  district: string
-  province: string
-  gender: string
-  day_of_birth: Date
-  avatar_url: string
-  created_at: Date
-  modified_at: Date
+  full_name?: string
+  address?: string
+  district?: string
+  province?: string
+  gender?: string
+  day_of_birth?: Date
+  avatar_url?: string
+  created_at?: Date
+  modified_at?: Date
 }
 export default UserModel

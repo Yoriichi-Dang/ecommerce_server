@@ -7,7 +7,7 @@ class AuthRepository {
   constructor() {
     this.db = dbConnection.getPool()
   }
-  async createAccount(user_model: UserModel): Promise<string> {
+  async createAccount(user_model: UserModel): Promise<string | undefined> {
     const client = await this.db.connect()
     try {
       await client.query('BEGIN')
