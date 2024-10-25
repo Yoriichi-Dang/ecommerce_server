@@ -1,6 +1,7 @@
 import express, { Application } from 'express'
 import bodyParser from 'body-parser'
 import authRoute from './modules/auth/route/auth_route'
+import profileRoute from './modules/profile/route/profile_route'
 async function startServer() {
   const app: Application = express()
 
@@ -11,6 +12,7 @@ async function startServer() {
     res.send('Hello, world!')
   })
   app.use('/', authRoute)
+  app.use('/profile', profileRoute)
   app.listen(PORT, () => {
     console.log(`🚀 Server ready at http://localhost:${PORT}`)
   })

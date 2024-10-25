@@ -1,20 +1,20 @@
-import { hashPassword, verifyPassword } from '~/utils/auth/password'
 import AuthRepository from '../repository/auth_repository'
 import UserModel from '../model/user_model'
 import { UserLogin, UserRegister } from '../dto'
+import { hashPassword, verifyPassword } from '@/utils/auth/password'
 
 class AuthService {
   private auth_repository: AuthRepository
   constructor() {
     this.auth_repository = new AuthRepository()
   }
-  async login(user_login: UserLogin): Promise<UserModel> {
+  async login(user_login: UserLogin): Promise<UserModel | null> {
     const user = await this.findUser(user_login.email, user_login.phone)
     if (!user) {
       throw new Error('User not found')
     }
-    if (!verifyPassword(user_login.password, user.password_hash)) {
-      throw new Error('Password is incorrect')
+    if (!(await verifyPassword(user_login.password, user.password_hash))) {
+      return null
     }
     return user
   }
@@ -44,6 +44,10 @@ class AuthService {
   }
   async checkUserExists(email: string | undefined, phone: string | undefined) {
     return await this.auth_repository.checkUserExists(email, phone)
+  }
+  async resetPassword(email: string, password: string): Promise<boolean> {
+    const password_hash = await hashPassword(password)
+    return await this.auth_repository.updateUserPassword(email, password_hash)
   }
 }
 export default AuthService

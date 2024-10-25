@@ -1,6 +1,6 @@
 import { Pool } from 'pg'
 import UserModel from '../model/user_model'
-import dbConnection from '~/config/db'
+import dbConnection from '@/config/db'
 
 class AuthRepository {
   private db: Pool
@@ -45,6 +45,20 @@ class AuthRepository {
       throw error
     } finally {
       client.release()
+    }
+  }
+  async updateUserPassword(email: string, password_hash: string): Promise<boolean> {
+    const query: string = `
+      UPDATE users_login SET password_hash = $1
+      WHERE email = $2
+    `
+    const values: string[] = [password_hash, email]
+    try {
+      await this.db.query(query, values)
+      return true
+    } catch (error) {
+      console.error('Error updating user password:', error)
+      return false
     }
   }
   async checkUserExists(email: string | undefined, phone: string | undefined): Promise<boolean> {
