@@ -17,7 +17,8 @@ class CategoryRepository {
       return result.rows.map((row: CategoryModel) => ({
         id: row.id,
         title: row.title,
-        url_key: row.url_key
+        url_key: row.url_key,
+        thumbnail_url: row.thumbnail_url
       })) as ListCategoryModel
     } finally {
       client.release()
@@ -34,6 +35,21 @@ class CategoryRepository {
         throw new Error('Category not found')
       }
       return result.rows[0].level
+    } finally {
+      client.release()
+    }
+  }
+  async getCategoryById(categoryId: number): Promise<CategoryModel> {
+    const client = await this.db.connect()
+    try {
+      const query: string = `
+        select * from categories where id=$1
+      `
+      const result = await client.query(query, [categoryId])
+      if (result.rows.length === 0) {
+        throw new Error('Category not found')
+      }
+      return result.rows[0] as CategoryModel
     } finally {
       client.release()
     }
@@ -65,8 +81,30 @@ class CategoryRepository {
       return result.rows.map((row: CategoryModel) => ({
         id: row.id,
         title: row.title,
-        url_key: row.url_key
+        url_key: row.url_key,
+        thumbnail_url: row.thumbnail_url
       })) as ListCategoryModel
+    } finally {
+      client.release()
+    }
+  }
+  async updateCategory(categoryId: number, category: Omit<CategoryModel, 'id'>): Promise<boolean> {
+    const client = await this.db.connect()
+    try {
+      const query: string = `
+        update categories set title=$1, thumbnail_url=$2, url_key=$3 where id=$4
+      `
+      const oldCategory = await this.getCategoryById(categoryId)
+      const values: (string | number | undefined)[] = [
+        category.title || oldCategory.title,
+        category.thumbnail_url || oldCategory.thumbnail_url,
+        category.url_key || oldCategory.url_key,
+        categoryId
+      ]
+      await client.query(query, values)
+      return true
+    } catch {
+      throw new Error('Failed to update category')
     } finally {
       client.release()
     }

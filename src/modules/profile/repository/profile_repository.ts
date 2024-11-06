@@ -45,11 +45,11 @@ class ProfileRepository {
   async updateAvatarByEmail(email: string, avatar_url: string): Promise<boolean> {
     try {
       const query: string = `
-    UPDATE users_account SET avatar_url = $1
-    FROM users_login_data
-    WHERE users_login_data.id = users_data.id
-    AND users_login_data.email = $2
-  `
+        UPDATE users_account SET avatar_url = $1
+        FROM users_login_data
+        WHERE users_login_data.id = users_data.id
+        AND users_login_data.email = $2
+    `
       const values: string[] = [avatar_url, email]
       await this.db.query(query, values)
       return true

@@ -1,3 +1,4 @@
+import CategoryDto from '../dto/category_dto'
 import CategoryService from '../service/category_service'
 import { Request, Response } from 'express'
 class CategoryController {
@@ -27,6 +28,20 @@ class CategoryController {
     try {
       const categoryId: number = parseInt(req.params.categoryId)
       const result = await this.category_service.getSubCategoryById(categoryId)
+      res.status(200).json(result)
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ message: error.message })
+      } else {
+        res.status(500).json({ message: 'An unknown error occurred' })
+      }
+    }
+  }
+  updateCategory = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const categoryId: number = parseInt(req.params.categoryId)
+      const payload: Omit<CategoryDto, 'id'> = req.body
+      const result = await this.category_service.updateCategory(categoryId, payload)
       res.status(200).json(result)
     } catch (error) {
       if (error instanceof Error) {

@@ -3,6 +3,7 @@ type CategoryModel = {
   title: string
   level?: number
   url_key: string | undefined
+  thumbnail_url?: string | undefined
 }
 type ListCategoryModel = CategoryModel[]
 
