@@ -17,7 +17,7 @@ class AuthMiddleware {
       }
       req.body.decoded = decoded
       next()
-    } catch (error) {
+    } catch {
       res.status(401).send('Invalid token')
       return
     }

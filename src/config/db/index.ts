@@ -17,22 +17,21 @@ class PostgreSQLConnect {
     })
     this.connect()
   }
-  public getPool() {
+  public getPool(): Pool {
     return this.pool
   }
-  private connect() {
+  private connect(): void {
     this.pool.connect((err: Error | undefined, client, done) => {
       if (err) {
-        return console.error('Error acquiring client', err.stack)
+        return
       }
-      console.log('Connected to PostgreSQL successfully!')
       done()
+      return
     })
   }
 
-  public async disconnect() {
+  public async disconnect(): Promise<void> {
     await this.pool.end()
-    console.log('Disconnected from PostgreSQL')
   }
 }
 

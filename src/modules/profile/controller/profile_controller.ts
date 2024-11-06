@@ -9,7 +9,7 @@ class ProfileController {
   constructor() {
     this.profileService = new ProfileService()
   }
-  getProfile = async (req: Request, res: Response) => {
+  getProfile = async (req: Request, res: Response): Promise<void> => {
     const decoded = req.body.decoded
     const user_dto: UserDto = await this.profileService.getProfile(decoded.email)
     if (!user_dto) {
@@ -18,7 +18,7 @@ class ProfileController {
     }
     res.status(200).send(user_dto)
   }
-  updateProfile = async (req: Request, res: Response) => {
+  updateProfile = async (req: Request, res: Response): Promise<void> => {
     const decoded = req.body.decoded
     const payload = req.body
     const user_model: UserModel = {
@@ -41,7 +41,7 @@ class ProfileController {
     }
     res.status(200).send(user_dto)
   }
-  updatePassword = async (req: Request, res: Response) => {
+  updatePassword = async (req: Request, res: Response): Promise<void> => {
     const decoded = req.body.decoded
     const password = req.body.password
     const hash_password = await hashPassword(password)
@@ -52,7 +52,7 @@ class ProfileController {
     }
     res.status(200).send({ message: 'Password updated successfully' })
   }
-  updateAvatar = async (req: Request, res: Response) => {
+  updateAvatar = async (req: Request, res: Response): Promise<void> => {
     const decoded = req.body.decoded
     const avatar_url = req.body.avatar_url
     const result = await this.profileService.updateAvatar(decoded.email, avatar_url)

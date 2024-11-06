@@ -34,15 +34,16 @@ class AuthService {
     }
     return await this.auth_repository.createAccount(user_model)
   }
-  async findUser(email: string | undefined, phone: string | undefined): Promise<any> {
+  async findUser(email: string | undefined, phone: string | undefined): Promise<UserModel | undefined> {
     if (email) {
       return await this.auth_repository.findUserByEmail(email)
     }
     if (phone) {
       return await this.auth_repository.findUserByPhone(phone)
     }
+    return undefined
   }
-  async checkUserExists(email: string | undefined, phone: string | undefined) {
+  async checkUserExists(email: string | undefined, phone: string | undefined): Promise<boolean> {
     return await this.auth_repository.checkUserExists(email, phone)
   }
   async resetPassword(email: string, password: string): Promise<boolean> {

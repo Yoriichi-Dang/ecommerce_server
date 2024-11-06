@@ -38,8 +38,7 @@ class ProfileRepository {
     try {
       await this.db.query(query, values)
       return true
-    } catch (error) {
-      console.error('Error updating user password:', error)
+    } catch {
       return false
     }
   }
@@ -54,8 +53,7 @@ class ProfileRepository {
       const values: string[] = [avatar_url, email]
       await this.db.query(query, values)
       return true
-    } catch (error) {
-      console.error('Error updating avatar:', error)
+    } catch {
       return false
     }
   }
@@ -113,8 +111,7 @@ class ProfileRepository {
       ]
       await this.db.query(query, values)
       return await this.findUserByEmail(payload.email || email)
-    } catch (error) {
-      console.error('Error updating user:', error)
+    } catch {
       return undefined
     }
   }

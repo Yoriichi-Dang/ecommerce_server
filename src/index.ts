@@ -2,7 +2,8 @@ import express, { Application } from 'express'
 import bodyParser from 'body-parser'
 import authRoute from './modules/auth/route/auth_route'
 import profileRoute from './modules/profile/route/profile_route'
-async function startServer() {
+import categoryRoute from './modules/category/route/category_route'
+async function startServer(): Promise<void> {
   const app: Application = express()
 
   const PORT = 3000
@@ -13,11 +14,14 @@ async function startServer() {
   })
   app.use('/', authRoute)
   app.use('/profile', profileRoute)
+  app.use('/categories', categoryRoute)
   app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
     console.log(`🚀 Server ready at http://localhost:${PORT}`)
   })
 }
 
 startServer().catch((err) => {
+  // eslint-disable-next-line no-console
   console.error('Failed to start server:', err)
 })

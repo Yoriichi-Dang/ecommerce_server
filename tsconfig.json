@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "NodeNext", // Quy định output module được sử dụng
     "moduleResolution": "NodeNext",
-    "target": "ES2023", // Target output cho code
+    "target": "es2020", // Target output cho code
     "outDir": "dist", // Đường dẫn output cho thư mục build
     "esModuleInterop": true,
     "strict": true /* Enable all strict type-checking options. */,
@@ -12,5 +12,9 @@
       "@/*": ["src/*"] // Đường dẫn tương đối cho các import (alias)
     }
   },
+  "exclude": [
+    "node_modules",
+    "eslint.config.mjs" // Add this line to exclude the ESLint config
+  ],
   "include": ["src/**/*"] // Đường dẫn include cho các file cần build
 }

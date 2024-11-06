@@ -27,7 +27,7 @@ class AuthRepository {
       INSERT INTO users_account (id, username, full_name, address, district, province, gender, day_of_birth, avatar_url)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     `
-      const data_values: any[] = [
+      const data_values: (string | number | Date | undefined)[] = [
         user_model.id,
         user_model.username,
         user_model.full_name,
@@ -65,8 +65,7 @@ class AuthRepository {
     try {
       await this.db.query(query, values)
       return true
-    } catch (error) {
-      console.error('Error updating user password:', error)
+    } catch {
       return false
     }
   }
