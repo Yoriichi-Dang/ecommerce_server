@@ -3,7 +3,7 @@
 ## Tech in use
 
 **Modular Monolith**
-**Frontend:** React Native with Expo, Axios <br>
+**Frontend:** Flutter <br>
 **Backend:** ExpressJS with TS, PostGreSQL, Cloudinary, FastAPI for call model AI
 **More:** github, docker
 

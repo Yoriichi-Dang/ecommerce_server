@@ -3,13 +3,14 @@ import { UserLogin, UserRegister } from '../dto'
 import AuthService from '../service/auth_service'
 import { transporter } from '@/config/mailer'
 import { generateTempPassword } from '@/utils/auth/password'
+import { Response, Request } from 'express'
 
 class AuthController {
   private auth_service: AuthService
   constructor() {
     this.auth_service = new AuthService()
   }
-  login = async (req: any, res: any): Promise<void> => {
+  login = async (req: Request, res: Response): Promise<void> => {
     const expire_access_token: string = `${process.env.EXPIRE_ACCESS_TOKEN}m`
     const expire_refresh_token: string = `${process.env.EXPIRE_REFRESH_TOKEN}d`
     const user_login: UserLogin = req.body
@@ -46,7 +47,7 @@ class AuthController {
       }
     }
   }
-  register = async (req: any, res: any): Promise<void> => {
+  register = async (req: Request, res: Response): Promise<void> => {
     const user_register: UserRegister = req.body
     try {
       await this.auth_service.createAccount(user_register)
@@ -59,9 +60,13 @@ class AuthController {
       }
     }
   }
-  refreshToken = async (req: any, res: any): Promise<void> => {
+  refreshToken = async (req: Request, res: Response): Promise<void> => {
     const expire_access_token: string = `${process.env.EXPIRE_ACCESS_TOKEN}m`
     const refresh_token = req.headers['authorization']?.split(' ')[1]
+    if (!refresh_token) {
+      res.status(400).send({ message: 'Refresh token is missing' })
+      return
+    }
     const payload: JwtPayload | null = verifyToken(refresh_token)
     try {
       if (payload === null) {
@@ -76,7 +81,7 @@ class AuthController {
         httpOnly: true,
         maxAge: 1000 * 60 * Number(process.env.EXPIRE_ACCESS_TOKEN) // 5 phút
       })
-      res.status(202).send({
+      res.status(201).send({
         access_token: access_token
       })
     } catch (error) {
@@ -87,7 +92,7 @@ class AuthController {
       }
     }
   }
-  forgotPassword = async (req: any, res: any): Promise<void> => {
+  forgotPassword = async (req: Request, res: Response): Promise<void> => {
     const email: string = req.body.email
     const tempPassword = generateTempPassword(email)
     const mailOptions = {

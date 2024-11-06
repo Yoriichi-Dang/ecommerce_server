@@ -10,8 +10,8 @@ class ProfileRepository {
   async findUserByPhone(phone: string): Promise<UserModel> {
     const query: string = `
         SELECT ul.*, ud.*
-        FROM users_login ul
-        JOIN users_data ud ON ul.id = ud.id
+        FROM users_login_data ul
+        JOIN users_account ud ON ul.id = ud.id
         WHERE ul.phone = $1
     `
     const values: string[] = [phone]
@@ -21,8 +21,8 @@ class ProfileRepository {
   async findUserByEmail(email: string): Promise<UserModel> {
     const query: string = `
         SELECT ul.*, ud.*
-        FROM users_login ul
-        JOIN users_data ud ON ul.id = ud.id
+        FROM users_login_data ul
+        JOIN users_account ud ON ul.id = ud.id
         WHERE ul.email = $1
     `
     const values: string[] = [email]
@@ -31,7 +31,7 @@ class ProfileRepository {
   }
   async updateUserPassword(email: string, password_hash: string): Promise<boolean> {
     const query: string = `
-      UPDATE users_login SET password_hash = $1
+      UPDATE users_login_data SET password_hash = $1
       WHERE email = $2
     `
     const values: string[] = [password_hash, email]
@@ -46,10 +46,10 @@ class ProfileRepository {
   async updateAvatarByEmail(email: string, avatar_url: string): Promise<boolean> {
     try {
       const query: string = `
-    UPDATE users_data SET avatar_url = $1
-    FROM users_login
-    WHERE users_login.id = users_data.id
-    AND users_login.email = $2
+    UPDATE users_account SET avatar_url = $1
+    FROM users_login_data
+    WHERE users_login_data.id = users_data.id
+    AND users_login_data.email = $2
   `
       const values: string[] = [avatar_url, email]
       await this.db.query(query, values)
@@ -59,7 +59,7 @@ class ProfileRepository {
       return false
     }
   }
-  async updateUserByEmail(email: string, payload: any): Promise<UserModel | undefined> {
+  async updateUserByEmail(email: string, payload: UserModel): Promise<UserModel | undefined> {
     try {
       const oldUser = await this.findUserByEmail(email)
       if (!oldUser) {
@@ -71,7 +71,7 @@ class ProfileRepository {
           throw new Error('Email already exists')
         }
         query = `
-          UPDATE users_login SET email = $1
+          UPDATE users_login_data SET email = $1
           WHERE email = $2
           `
         const values = [payload.email, email]
@@ -82,14 +82,14 @@ class ProfileRepository {
           throw new Error('Phone already exists')
         }
         query = `
-          UPDATE users_login SET phone = $1
+          UPDATE users_login_data SET phone = $1
           WHERE email = $2
           `
         const values = [payload.phone || oldUser.phone, email]
         await this.db.query(query, values)
       }
       query = `
-        UPDATE users_data SET
+        UPDATE users_account SET
         username = $1,
         full_name = $2,
         address = $3,
@@ -97,9 +97,9 @@ class ProfileRepository {
         province= $5,
         gender = $6,
         day_of_birth = $7
-        FROM users_login
-        WHERE users_login.id = users_data.id
-        AND users_login.email = $8
+        FROM users_login_data
+        WHERE users_login_data.id = users_account.id
+        AND users_login_data.email = $8
         `
       const values = [
         payload.username || oldUser.username,
