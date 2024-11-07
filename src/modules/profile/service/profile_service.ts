@@ -1,7 +1,8 @@
 import UserDto from '../dto/user_dto'
 import UserModel from '../model/user_model'
 import ProfileRepository from '../repository/profile_repository'
-
+import cloudinaryInstance from '../../../config/cloudinary'
+import cloudinary from '../../../config/cloudinary'
 class ProfileService {
   private profileRepository: ProfileRepository
   constructor() {
@@ -28,8 +29,13 @@ class ProfileService {
     return result
   }
   async updateAvatar(email: string, avatar_url: string): Promise<boolean> {
-    const result = await this.profileRepository.updateAvatarByEmail(email, avatar_url)
-    return result
+    try {
+      const result = await this.profileRepository.updateAvatarByEmail(email, avatar_url)
+
+      return result // Trả về kết quả cập nhật
+    } catch {
+      return false // Nếu có lỗi, trả về false
+    }
   }
   async updateProfile(email: string, payload: UserModel): Promise<UserDto | undefined> {
     const user_model: UserModel | undefined = await this.profileRepository.updateUserByEmail(email, payload)

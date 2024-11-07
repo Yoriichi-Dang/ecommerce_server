@@ -23,6 +23,7 @@ class PostgreSQLConnect {
   private connect(): void {
     this.pool.connect((err: Error | undefined, client, done) => {
       if (err) {
+        console.log(err)
         return
       }
       done()
