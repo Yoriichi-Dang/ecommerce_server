@@ -7,16 +7,26 @@ class ProductRepository {
   constructor() {
     this.db = dbConnection.getPool()
   }
-  async getProductImagesById(productId: number): Promise<string[] | null> {
+  private async queryWithClient<T>(query: string, params: (string | number)[]): Promise<T[]> {
     const client = await this.db.connect()
+    try {
+      const result = await client.query(query, params)
+      return result.rows as T[] // This assumes you expect multiple rows (array of T)
+    } catch (error) {
+      throw new Error(`Database query failed: ${error}`)
+    } finally {
+      client.release()
+    }
+  }
+
+  async getProductImagesById(productId: number): Promise<string[] | null> {
     try {
       const query = `
       select product_images.image_url from product_images where product_images.id=$1
       `
-      const result = await client.query(query, [productId])
-      return result.rows.map((item: Record<string, string>) => item.image_url)
+      const result = await this.queryWithClient<Record<string, string>>(query, [productId])
+      return result.map((item: Record<string, string>) => item.image_url)
     } catch {
-      client.release()
       return null
     }
   }
@@ -24,47 +34,45 @@ class ProductRepository {
     try {
       const query = `
         SELECT COALESCE(COUNT(DISTINCT CASE
-                                 WHEN s.status IN ('purchase', 'order') THEN od.id
-                                 ELSE NULL
-                               END), 0) AS quantity_sell
-                               LEFT JOIN order_details AS od ON pi.id = od.product_id
-                               LEFT JOIN shipments AS s ON od.id = s.order_detail_id
-                               WHERE pi.id = $1
-                               GROUP BY pi.id;
-                               FROM product_infos AS pi
-    `
-      const client = await this.db.connect()
-      const result = (await client.query(query, [productId])).rows[0]
-      return result
-    } catch {
+                                         WHEN s.status IN ('purchase', 'order') THEN od.id
+                                         ELSE NULL
+                                       END), 0) AS quantity_sell
+        FROM product_infos AS pi
+        LEFT JOIN order_details AS od ON pi.id = od.product_id
+        LEFT JOIN shipments AS s ON od.id = s.order_detail_id
+        WHERE pi.id = $1
+        GROUP BY pi.id;
+      `
+
+      const result = await this.queryWithClient<{ quantity_sell: string }>(query, [productId])
+      return parseInt(result[0]?.quantity_sell, 10) || 0
+    } catch (error) {
       return 0
     }
   }
+
   async getProductSellersById(productId: number): Promise<Seller[] | null> {
-    const client = await this.db.connect()
     try {
       const query = `
       select sellers.* from sellers
       join product_seller as ps on sellers.id=ps.id
       where ps.product_id=$1
       `
-      const result = await client.query(query, [productId])
-      return result.rows as Seller[]
+      const result = await this.queryWithClient<Seller>(query, [productId])
+      return result as Seller[]
     } catch {
-      client.release()
       return null
     }
   }
   async getProductOptionsById(productId: number): Promise<ProductOptionsRecord | null> {
-    const client = await this.db.connect()
     let query = `
     select po.code,po.name,po.label from product_options as po
     where product_id=$1
     `
     try {
-      const result_1 = (await client.query(query, [productId])).rows
-      if (result_1.length === 0) return null
-      const productOptions: ProductOptionsRecord = result_1.reduce((acc, item) => {
+      const result = await this.queryWithClient<{ code: string; name: string; label: string }>(query, [productId])
+      if (result.length == 0) return null
+      const productOptions: ProductOptionsRecord = result.reduce((acc, item) => {
         if (!acc[item.code]) {
           acc[item.code] = []
         }
@@ -91,8 +99,7 @@ class ProductRepository {
       where pa.product_id=$1
     `
     try {
-      const client = this.db.connect()
-      const result = (await (await client).query(query, [productId])).rows
+      const result = await this.queryWithClient<ProductAttr>(query, [productId])
       return result as ProductAttr[]
     } catch {
       return null
@@ -104,8 +111,7 @@ class ProductRepository {
     where ph.product_id=$1
     `
     try {
-      const client = await this.db.connect()
-      const result = (await client.query(query, [productId])).rows
+      const result = await this.queryWithClient<Record<string, string>>(query, [productId])
       return result.map((item: Record<string, string>) => item.name)
     } catch {
       return null
@@ -116,16 +122,36 @@ class ProductRepository {
       const client = await this.db.connect()
 
       const query = `
-         SELECT pi.*,pd.description, authors.name as author_name, product_inventory.quantity as inventory_quantiy
-        FROM product_infos AS pi
-        LEFT JOIN product_authors AS pa ON pi.id = pa.product_id
-        LEFT JOIN authors ON pa.id = authors.id
-        JOIN product_descriptions as pd on pi.id=pd.id
-		    JOIN product_inventory on pi.id=product_inventory.product_id
-        WHERE pi.id = $1;
-      `
+      SELECT pi.*, pd.description, authors.name as author_name, product_inventory.quantity as inventory_quantity
+      FROM product_infos AS pi
+      LEFT JOIN product_authors AS pa ON pi.id = pa.product_id
+      LEFT JOIN authors ON pa.id = authors.id
+      JOIN product_descriptions AS pd ON pi.id = pd.id
+      JOIN product_inventory ON pi.id = product_inventory.product_id
+      WHERE pi.id = $1;
+    `
+
       const result = await (await client.query(query, [productId])).rows[0]
+
+      // Release the client after the query is done
       client.release()
+
+      // If no result is found, return undefined
+      if (!result) {
+        return undefined
+      }
+
+      // Fetching all associated data asynchronously
+      const [productAttrs, productHighlights, quantitySold, sellers, imagesUrl, productOptions] = await Promise.all([
+        this.getProductAttrsById(productId),
+        this.getProductHighlightsById(productId),
+        this.getProductSoldById(productId),
+        this.getProductSellersById(productId),
+        this.getProductImagesById(productId),
+        this.getProductOptionsById(productId)
+      ])
+
+      // Return the product model with all associated data
       return {
         id: result.id,
         name: result.name,
@@ -138,19 +164,20 @@ class ProductRepository {
         description: result.description,
         author_name: result.author_name,
         inventory_quantiy: result.inventory_quantiy,
-        product_options: await this.getProductOptionsById(productId),
-        product_attrs: await this.getProductAttrsById(productId),
-        product_highlights: await this.getProductHighlightsById(productId),
-        quantity_sold: await this.getProductSoldById(productId),
-        seller: await this.getProductSellersById(productId),
-        images_url: await this.getProductImagesById(productId)
+        product_attrs: productAttrs,
+        product_highlights: productHighlights,
+        quantity_sold: quantitySold,
+        seller: sellers,
+        images_url: imagesUrl,
+        product_options: productOptions
       } as ProductModel
-    } catch {
-      return undefined
+    } catch (error) {
+      console.error('Error in findProductById:', error)
+      return undefined // If there's an error, return undefined
     }
   }
+
   async getProductsByCategoryId(categoryId: number): Promise<Partial<ProductModel>[]> {
-    const client = await this.db.connect()
     try {
       const query = `
         SELECT pi.*,
@@ -165,9 +192,8 @@ class ProductRepository {
         WHERE pc.category_id = $1
         GROUP BY pi.id;
     `
-      const result = await client.query(query, [categoryId])
-      client.release()
-      return result.rows.map((row: ProductModel) => ({
+      const result = await this.queryWithClient<ProductModel>(query, [categoryId])
+      return result.map((row: ProductModel) => ({
         id: row.id,
         name: row.name,
         url_key: row.url_key,
@@ -179,7 +205,6 @@ class ProductRepository {
         quantity_sold: row.quantity_sold
       }))
     } catch {
-      client.release()
       return []
     }
   }
