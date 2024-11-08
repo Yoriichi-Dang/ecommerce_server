@@ -1,8 +1,6 @@
 import UserDto from '../dto/user_dto'
 import UserModel from '../model/user_model'
 import ProfileRepository from '../repository/profile_repository'
-import cloudinaryInstance from '../../../config/cloudinary'
-import cloudinary from '../../../config/cloudinary'
 class ProfileService {
   private profileRepository: ProfileRepository
   constructor() {
